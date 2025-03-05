@@ -1,0 +1,32 @@
+import streamlit as st
+import pandas as pd
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+    return text
+
+def calculate_match(job_description, resume_text):
+    job_description = preprocess_text(job_description)
+    resume_text = preprocess_text(resume_text)
+    
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform([job_description, resume_text])
+    similarity = cosine_similarity(vectors)[0][1]
+    
+    return round(similarity * 100, 2)
+
+st.title("CV Match Evaluator")
+
+job_description = st.text_area("Enter the Job Description:")
+resume_text = st.text_area("Paste the Resume Text:")
+
+if st.button("Evaluate Match"):
+    if job_description and resume_text:
+        match_percentage = calculate_match(job_description, resume_text)
+        st.success(f"CV Match Percentage: {match_percentage}%")
+    else:
+        st.error("Please enter both the job description and resume text.")
